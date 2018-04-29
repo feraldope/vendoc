@@ -1,9 +1,11 @@
 // onTop.cpp
 //
 // Build command:
-//  g++ -o onTop.exe onTop.cpp -lgdi32 -lboost_regex
+//  g++ -o onTop.exe onTop.C FileIO.C -lgdi32 -lboost_regex
+//	g++ -o onTop.exe /cygdrive/c/users/bin/onTop.C /cygdrive/c/users/bin/FileIO.C -lgdi32 -lboost_regex
 //
 // Example command line:
+//	set PATH=%PATH%;C:\cygwin64\bin
 //  C:\cygwin64\home\feral\onTop /d /t "Administrator: cmd.*" /c "ConsoleWindowClass" 100 100 1000 1000
 //
 // You can use the following program to learn the class name and window name used by an application
@@ -23,8 +25,6 @@
 //http://www.boost.org/doc/libs/1_55_0/libs/regex/doc/html/boost_regex/syntax.html
 //http://www.boost.org/doc/libs/1_55_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html
 
-#pragma GCC diagnostic ignored "-Wwrite-strings"
-
 #include <windows.h>
 #include <stdio.h>
 #include <iostream> //for cout
@@ -32,7 +32,7 @@
 #include <vector>
 #include <boost/regex.hpp>
 #include <boost/exception/diagnostic_information.hpp>
-//#include "fileio.h"
+#include "fileio.h"
 
 using namespace std;
 
@@ -65,6 +65,7 @@ void MessageBox1 (char *unused1, char *err, char *header, UINT unused2)
 	fprintf (stderr, err);
 }
 
+#if 0
 ///////////////////////////////////////////////////////////////////////////////
 char *formatLastError (int iError) //not reentrant - returns pointer to static buffer
 {
@@ -92,6 +93,7 @@ char *formatLastError (int iError) //not reentrant - returns pointer to static b
 
 	return szBuffer; //FormatMessage() appends newline (0x0D, 0x0A)
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 BOOL CALLBACK myEnumProc (HWND hWnd1, LPARAM lParam)
@@ -390,10 +392,10 @@ int main (int argc, char *argv[])
 	}
 
 	char szBuffer[BUFSIZE] = "*";
-	int left = 0;
-	int top = 0;
-	int width = 0;
-	int height = 0;
+	int left = 100;
+	int top = 100;
+	int width = 1000;
+	int height = 1000;
 	if (argc > 0) {
 		--argc;
 		sscanf (*++argv, "%d", &left);
