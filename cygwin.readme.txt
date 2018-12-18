@@ -1,0 +1,23 @@
+REM cygwin.readme.txt
+
+
+REM example build commands
+
+cd C:\cygwin64\home\feral\
+g++ -o onTop.exe /cygdrive/c/users/bin/onTop.C /cygdrive/c/users/bin/FileIO.C -lgdi32 -lboost_regex
+
+cd C:\cygwin64\home\feral\
+g++ -o Search.exe /cygdrive/c/users/bin/Search.C /cygdrive/c/users/bin/FileIO.C -lgdi32 -lboost_regex
+
+cd C:\cygwin64\home\feral\
+g++ -o Wh.exe /cygdrive/c/users/bin/Wh.C /cygdrive/c/users/bin/FileIO.C -lgdi32 -lboost_regex
+
+cd C:\cygwin64\home\feral\
+g++ -o mov.exe /cygdrive/c/users/bin/mov.C /cygdrive/c/users/bin/FileIO.C -lgdi32 -lboost_regex
+
+
+REM Example run commands
+
+set PATH=%PATH%;C:\cygwin64\bin
+C:\cygwin64\home\feral\onTop /d /t "Administrator: cmd.*" /c "ConsoleWindowClass" 100 100 1000 1000
+
