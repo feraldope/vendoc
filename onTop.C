@@ -65,36 +65,6 @@ void MessageBox1 (char *unused1, char *err, char *header, UINT unused2)
 	fprintf (stderr, err);
 }
 
-#if 0
-///////////////////////////////////////////////////////////////////////////////
-char *formatLastError (int iError) //not reentrant - returns pointer to static buffer
-{
-	static char szBuffer[BUFSIZE];
-
-//	DWORD dwLanguageID = GetUserDefaultLangID ();
-//	DWORD dwLanguageID = MAKELANGID (LANG_ENGLISH, SUBLANG_ENGLISH_US);
-	DWORD dwLanguageID = MAKELANGID (LANG_NEUTRAL, SUBLANG_DEFAULT);
-	DWORD dwFlags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
-
-	int iLength = sizeof szBuffer;
-	int iCount = FormatMessage (dwFlags, NULL, iError, dwLanguageID, szBuffer, iLength, NULL);
-
-	//if the format failed, just print the number
-	if (iCount == 0) {
-		sprintf (szBuffer, "error=%d", iError);
-//		_itoa (iError, szBuffer, 10);
-	}
-
-#if 0 //remove trailing spaces and periods that Windows appends
-	while (szBuffer[iCount - 1] == ' ' || szBuffer[iCount - 1] == '.') {
-		szBuffer[--iCount] = 0;
-	}
-#endif
-
-	return szBuffer; //FormatMessage() appends newline (0x0D, 0x0A)
-}
-#endif
-
 ////////////////////////////////////////////////////////////////////////////////
 BOOL CALLBACK myEnumProc (HWND hWnd1, LPARAM lParam)
 {
