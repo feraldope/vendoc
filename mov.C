@@ -11,7 +11,7 @@
 // also, optionally converts spaces or underscores in names to dashes
 
 #define APP_NAME "mov"
-#define VERS_STR "(V6.01)"
+#define VERS_STR "(V6.02)"
 
 #include <windows.h>
 #if defined (_MSC_VER)
@@ -175,8 +175,12 @@ char *setDirectory (const char *inSpec)
 		return getCurrentDirectory ();
 	}
 
+	const int albumSubfolderLength = 2;
+	char subdir[albumSubfolderLength + 1];
+	strncpy (subdir, inSpec, albumSubfolderLength);
+	subdir[albumSubfolderLength] = 0;
+
 	char dir[256];
-	char subdir[2] = { *inSpec, 0 };
 	strcpy (dir, prRoot);
 	strcat (dir, "/jroot/");
 	strcat (dir, subdir);
