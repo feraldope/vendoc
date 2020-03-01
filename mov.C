@@ -11,7 +11,7 @@
 // also, optionally converts spaces or underscores in names to dashes
 
 #define APP_NAME "mov"
-#define VERS_STR "(V6.02)"
+#define VERS_STR "(V6.03)"
 
 #include <windows.h>
 #if defined (_MSC_VER)
@@ -154,6 +154,16 @@ char *getCurrentDirectory ()
 	return currentDir;
 }
 
+/////////////////////////////////////////////////////////////////////////////
+bool setCurrentDirectory (const char *dir)
+{
+	if (SetCurrentDirectory (dir) == FALSE) {
+		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", dir, formatLastError (GetLastError ()));
+		return FALSE;
+	}
+	return TRUE;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 char *setDirectory (const char *inSpec)
 {
@@ -195,6 +205,52 @@ char *setDirectory (const char *inSpec)
 	}
 
 	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool filesSpreadAcrossMultipleFolders (const char *inSpec)
+{
+	char *prRoot = getenv ("PR_ROOT");
+	if (prRoot == NULL) {
+		return FALSE;
+	}
+
+	int numDirCount = 0;
+
+
+//	if (fileExistsWild (inSpec)) {
+//		numDirCount++
+//	}
+
+	if (SetCurrentDirectory (prRoot) == FALSE) {
+		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", prRoot, formatLastError (GetLastError ()));
+		return FALSE;
+	}
+
+	if (fileExistsWild (inSpec)) {
+		numDirCount++;
+	}
+
+	const int albumSubfolderLength = 2;
+	char subdir[albumSubfolderLength + 1];
+	strncpy (subdir, inSpec, albumSubfolderLength);
+	subdir[albumSubfolderLength] = 0;
+
+	char dir[256];
+	strcpy (dir, prRoot);
+	strcat (dir, "/jroot/");
+	strcat (dir, subdir);
+
+	if (SetCurrentDirectory (dir) == FALSE) {
+		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", dir, formatLastError (GetLastError ()));
+		return FALSE;
+	}
+
+	if (fileExistsWild (inSpec)) {
+		numDirCount++;
+	}
+
+	return numDirCount > 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -848,9 +904,20 @@ int main (int argc, char *argv[])
 	char *str2 = (argc >= 3 ? *++argv : NULL);
 	char *str3 = (argc >= 4 ? *++argv : NULL);
 
+//	char *currentDirectory = strdup (getCurrentDirectory ());
+
 	char *directory = setDirectory (str1);
 
 	char *szCommands[MAX_FILES];
+
+	if (filesSpreadAcrossMultipleFolders (str1)) {
+		fprintf (stderr, "Error: files exist across multiple folders\n");
+		return 1;
+	}
+
+	if (directory != null) {
+		setCurrentDirectory (directory); //hack reset current directory
+	}
 
 	int numCommands = 0;
 	if (reNumber1 || reNumber2) {

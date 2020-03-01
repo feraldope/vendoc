@@ -127,6 +127,7 @@ BOOL forceFileFlush (const char *fileSpec, FINDFILEDATA *fdFiles);
 int launchCommand (const char *command, const char *args);
 int launchPlot (const char *plotFile);
 BOOL stringIsOnlyDigits (const char *filename);
+BOOL isRedirectedHandle (DWORD nStdHandle);
 int getWindowWidth (int defaultWidth);
 char *usingStdin (const char *filename);
 char *strstri (const char *str, const char *sub);

@@ -1954,6 +1954,15 @@ BOOL stringIsOnlyDigits (const char *filename)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+BOOL isRedirectedHandle (DWORD nStdHandle)
+{
+	HANDLE handle = GetStdHandle (nStdHandle);
+	CONSOLE_SCREEN_BUFFER_INFO info;
+
+	return !GetConsoleScreenBufferInfo (handle, &info);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 int getWindowWidth (int defaultWidth)
 {
 	static int windowWidth = -1;
