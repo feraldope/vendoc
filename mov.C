@@ -158,7 +158,7 @@ char *getCurrentDirectory ()
 bool setCurrentDirectory (const char *dir)
 {
 	if (SetCurrentDirectory (dir) == FALSE) {
-		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", dir, formatLastError (GetLastError ()));
+		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed@0: %s", dir, formatLastError (GetLastError ()));
 		return FALSE;
 	}
 	return TRUE;
@@ -177,7 +177,7 @@ char *setDirectory (const char *inSpec)
 	}
 
 	if (SetCurrentDirectory (prRoot) == FALSE) {
-		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", prRoot, formatLastError (GetLastError ()));
+		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed@1: %s", prRoot, formatLastError (GetLastError ()));
 		return NULL;
 	}
 
@@ -196,7 +196,7 @@ char *setDirectory (const char *inSpec)
 	strcat (dir, subdir);
 
 	if (SetCurrentDirectory (dir) == FALSE) {
-		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", dir, formatLastError (GetLastError ()));
+		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed@2: %s", dir, formatLastError (GetLastError ()));
 		return NULL;
 	}
 
@@ -208,8 +208,19 @@ char *setDirectory (const char *inSpec)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool filesSpreadAcrossMultipleFolders (const char *inSpec)
+//bool filesSpreadAcrossMultipleFolders (const char *inSpec)
+bool filesSpreadAcrossMultipleFolders (const char *str1, const char *str2)
 {
+	const char *inSpec = str1;
+	char buf[256];
+	if (str2 != NULL) {
+		strcpy (buf, str2);
+		strcat (buf, str1);
+		inSpec = buf;
+	}		
+
+	printf ("[DEBUG] filesSpreadAcrossMultipleFolders: str1: %s, str2: %s, inSpec: %s\n", str1, str2, inSpec);
+
 	char *prRoot = getenv ("PR_ROOT");
 	if (prRoot == NULL) {
 		return FALSE;
@@ -217,13 +228,12 @@ bool filesSpreadAcrossMultipleFolders (const char *inSpec)
 
 	int numDirCount = 0;
 
-
 //	if (fileExistsWild (inSpec)) {
 //		numDirCount++
 //	}
 
 	if (SetCurrentDirectory (prRoot) == FALSE) {
-		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", prRoot, formatLastError (GetLastError ()));
+		fprintf (stderr, "filesSpreadAcrossMultipleFolders: SetCurrentDirectory (%s) failed@3: %s", prRoot, formatLastError (GetLastError ()));
 		return FALSE;
 	}
 
@@ -242,7 +252,7 @@ bool filesSpreadAcrossMultipleFolders (const char *inSpec)
 	strcat (dir, subdir);
 
 	if (SetCurrentDirectory (dir) == FALSE) {
-		fprintf (stderr, "setDirectory: SetCurrentDirectory (%s) failed: %s", dir, formatLastError (GetLastError ()));
+		fprintf (stderr, "filesSpreadAcrossMultipleFolders: SetCurrentDirectory (%s) failed@4: %s", dir, formatLastError (GetLastError ()));
 		return FALSE;
 	}
 
@@ -904,13 +914,15 @@ int main (int argc, char *argv[])
 	char *str2 = (argc >= 3 ? *++argv : NULL);
 	char *str3 = (argc >= 4 ? *++argv : NULL);
 
+	printf ("[DEBUG] main: str1: %s, str2: %s, str3: %s\n", str1, str2, str3);
+
 //	char *currentDirectory = strdup (getCurrentDirectory ());
 
 	char *directory = setDirectory (str1);
 
 	char *szCommands[MAX_FILES];
 
-	if (filesSpreadAcrossMultipleFolders (str1)) {
+	if (filesSpreadAcrossMultipleFolders (str1, str2)) {
 		fprintf (stderr, "Error: files exist across multiple folders\n");
 		return 1;
 	}
