@@ -6,7 +6,7 @@
 // STL examples at http://www.codeproject.com/vcpp/stl/ostringstream.asp
 
 
-#define VERS_STR "(V5.42)"
+#define VERS_STR "(V5.43)"
 #define APP_NAME "Extr"
 
 #pragma warning (disable:4786)
@@ -1498,8 +1498,9 @@ string dirList (const string &filespec, int exactLength)
 	if (exactLength >= 0) {
 		sort (vec1.begin (), vec1.end (), lessViaLength ());
 	} else {
+		srand (unsigned (time (NULL))); //seed default random number generator
 		random_shuffle (vec1.begin (), vec1.end ());
-	} 
+	}
 
 	string subdirs;
 	for (k = vec1.begin (); k != vec1.end (); ++k) {
