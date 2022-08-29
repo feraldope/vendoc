@@ -6,7 +6,7 @@
 // STL examples at http://www.codeproject.com/vcpp/stl/ostringstream.asp
 
 
-#define VERS_STR "(V5.43)"
+#define VERS_STR "(V5.44)"
 #define APP_NAME "Extr"
 
 #pragma warning (disable:4786)
@@ -1543,7 +1543,7 @@ int proc12a (const string &filespec)
 
 	char *prRoot = getenv ("PR_ROOT");
 	if (prRoot != NULL) {
-		for (int ii = 3; ii >= 1; --ii) {
+		for (int ii = 5; ii >= 1; --ii) {
 			string subFolder = prRoot + string ("/jroot/") + file.substr (0, ii);
 			if (dirExists (subFolder.c_str ())) {
 				albumSubFolderLength = ii;
@@ -1595,6 +1595,8 @@ int proc12a (const string &filespec)
 	string subdirs1 = dirList (path, 1);
 	string subdirs2 = dirList (path, 2);
 	string subdirs3 = dirList (path, 3);
+	string subdirs4 = dirList (path, 4);
+	string subdirs5 = dirList (path, 5);
 	
 //	cout << "set BASENAME_PATH=" << appendSlash ((char*)path.c_str ()) << endl;
 	cout << "set BASENAME_PATH=" << path << endl;
@@ -1607,6 +1609,8 @@ int proc12a (const string &filespec)
 	cout << "set BASENAME_ALBUM_SUBFOLDERS1=" << subdirs1 << endl;
 	cout << "set BASENAME_ALBUM_SUBFOLDERS2=" << subdirs2 << endl;
 	cout << "set BASENAME_ALBUM_SUBFOLDERS3=" << subdirs3 << endl;
+	cout << "set BASENAME_ALBUM_SUBFOLDERS4=" << subdirs4 << endl;
+	cout << "set BASENAME_ALBUM_SUBFOLDERS5=" << subdirs5 << endl;
 	cout << "set BASENAME_BASE=" << base << endl;
 	cout << "set BASENAME_EXT=" << ext << endl;
 	cout << "set BASENAME_LEAF=" << leaf << endl;

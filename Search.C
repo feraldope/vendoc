@@ -1,7 +1,7 @@
 //Search.C - searches files for strings
 
 #define APP_NAME "search"
-#define VERS_STR "(V5.01)"
+#define VERS_STR "(V5.02)"
 
 #include <windows.h>
 #include <stdio.h>
@@ -12,7 +12,7 @@
 #include <assert.h>
 #include "fileio.h"
 
-#define BUFSZ  (50 * 1024) //maximum length of line that can be read without splitting
+#define BUFSZ  (64 * 1024) //maximum length of line that can be read without splitting
 #define MAXSTRINGS	   24  //maximum number of input strings accepted
 #define MATCH_AND		1
 #define MATCH_OR		0
