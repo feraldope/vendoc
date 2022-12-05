@@ -6,7 +6,7 @@
 // STL examples at http://www.codeproject.com/vcpp/stl/ostringstream.asp
 
 
-#define VERS_STR "(V5.44)"
+#define VERS_STR "(V6.01)"
 #define APP_NAME "Extr"
 
 #pragma warning (disable:4786)
@@ -1313,6 +1313,7 @@ int proc10 (const string &file)
 			iInUrl = 1;
 		}
 
+		int outputChar = 1;
 		if (iInUrl == 1) {
 
 			//convert escape sequences
@@ -1326,6 +1327,16 @@ int proc10 (const string &file)
 				}
 			}
 
+			//handle extended ASCII
+			int jj = *p;
+			if (jj < 0) {
+				char buf[16];
+				sprintf (buf, "%%%02X", jj & 0xFF);
+				cout << buf;
+				outputChar = 0;
+//				cerr << "extended ASCII: <" << jj << "> = <" << buf << ">" << endl;
+			}			
+			
 			//handle special chars and sequences
 			switch (*p) {
 			case '\\':
@@ -1374,21 +1385,21 @@ int proc10 (const string &file)
 			//these chars, insert a newline
 			case '?':
 			case '=':
-			case '&':
+//			case '&':
 			case '\'':
 			case '"':
 			case '<':
 			case '>':
 			case '*':
-			case '#':
-			case '%':
-			case '(':
-			case ')':
+//			case '#':
+//			case '%':
+//			case '(':
+//			case ')':
 			case '[':
 			case ']':
 			case ' ':
 			case ',':
-			case ';':
+//			case ';':
 			case '|':
 				iInUrl = 0;
 				cout << endl;
@@ -1398,8 +1409,11 @@ int proc10 (const string &file)
 			}
 		}
 
-		if (iInUrl == 0 || iInUrl == 1)
-			cout << *p;
+		if (iInUrl == 0 || iInUrl == 1) {
+			if (outputChar == 1) {			
+				cout << *p;
+			}
+		}
 	}
 
 	cout << endl;

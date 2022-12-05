@@ -11,7 +11,7 @@
 // also, optionally converts spaces or underscores in names to dashes
 
 #define APP_NAME "mov"
-#define VERS_STR "(V6.03)"
+#define VERS_STR "(V6.04)"
 
 #include <windows.h>
 #if defined (_MSC_VER)
@@ -39,7 +39,7 @@ int numConflicts = 0;
 int startIndex = 1;
 int increment = 1; //set to -1 for reverse (decrement)
 bool useAlphanumSort = 0;
-bool renumberWithGaps = 1;
+bool renumberWithGaps = 0; //NOTE permanently disabled
 bool forceOverwrite = 0;
 bool queryMode = 0;
 bool reNumber1 = 0;
