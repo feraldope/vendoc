@@ -11,7 +11,7 @@
 // also, optionally converts spaces or underscores in names to dashes
 
 #define APP_NAME "mov"
-#define VERS_STR "(V6.04)"
+#define VERS_STR "(V6.05)"
 
 #include <windows.h>
 #if defined (_MSC_VER)
@@ -883,28 +883,28 @@ int main (int argc, char *argv[])
 //TODO - fix usage output
 	if (reNumber1 || reNumber2) {
 		if (argc != 2 && argc != 3 && argc != 4) {
-			fprintf (stderr, "Usage: " APP_NAME " [/renum[1|2][=<width>] [/start=<num>]] [/sp] [/us] [/f] <pattern> [<stub>]\n"
+			fprintf (stderr, "Usage: " APP_NAME " [/renum[1|2][=<width>] [/start=<num>]] [/noh] [/sp] [/us] [/f] <pattern> [<stub>]\n"
 					" where pattern can contain wildcards\n");
 			return 1;
 		}
 
 	} else if (pad) {
 		if (argc != 2) {
-			fprintf (stderr, "Usage: " APP_NAME " [/pad[=<width>]] [/sp] [/us] [/f] <pattern>\n"
+			fprintf (stderr, "Usage: " APP_NAME " [/pad[=<width>]] [/noh] [/sp] [/us] [/f] <pattern>\n"
 					" where pattern can contain wildcards\n");
 			return 1;
 		}
 
 	} else if (replaceString) {
 		if (argc != 3 && argc != 4) {
-			fprintf (stderr, "Usage: " APP_NAME " [/rep] [/sp] [/us] [/f] <pattern> <string1> [<string2>]\n"
+			fprintf (stderr, "Usage: " APP_NAME " [/rep] [/noh] [/sp] [/us] [/f] <pattern> <string1> [<string2>]\n"
 					" where pattern can contain wildcards\n");
 			return 1;
 		}
 
 	} else {
 		if (argc != 3) {
-			fprintf (stderr, "Usage: " APP_NAME " [/rep] [/sp] [/us] [/f] <pattern1> <pattern2>\n"
+			fprintf (stderr, "Usage: " APP_NAME " [/rep] [/noh] [/sp] [/us] [/f] <pattern1> <pattern2>\n"
 					" where each pattern must have exactly one '*'\n");
 			return 1;
 		}
