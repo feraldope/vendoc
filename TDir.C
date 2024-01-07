@@ -1,7 +1,7 @@
 //TDir is a better dir
 
 #define APP_NAME "TDir"
-#define VERS_STR " (V5.04)"
+#define VERS_STR " (V5.05)"
 
 #include <windows.h>
 #include <AclAPI.h>
@@ -31,7 +31,7 @@ const int Space = 0x20; //ASCII space char
 
 int bShowAttrs, bRecurseSubdirs, iAddlSubdirLevels, bIncludeDirs, bExcludeNonSource, bBrief;
 int bForceFileFlush, bShowOnlySubdirs, bDoNotShowSubdirs;
-int bShowACLs, bSkipLabels, bClearCaseViewFile, bInterixPathname;
+int bShowACLs, bSkipLabels, bClearCaseViewFile, bInterixPathname, iMaxFilesToPrint;
 
 
 #if defined (_MSC_VER) //print file owner to stdout
@@ -378,7 +378,7 @@ void printUsageAndDie (char *message = 0)
 	if (message)
 		fprintf (stderr, "\n%s: %s; use /h for help\n", APP_NAME, message);
 	else
-		fprintf (stderr, "\nUsage: %s [/a[x]] [/a[-]d] [/b] [/d] [/e[=]<file>[,<file>]] [/f] [/h] [/l=<bytes>{K|M}] [/o[-]{d|e|n|s}] [/s] [/sl] [/s<addlLevels>] [/vobs/...] [/dev/fs/...] [/x]\n", APP_NAME);
+		fprintf (stderr, "\nUsage: %s [/a[x]] [/a[-]d] [/b] [/d] [/e[=]<file>[,<file>]] [/f] [/h] [/l=<bytes>{K|M}] [/m=<max files>] [/nod] [/o[-]{d|e|n|s}] [/s] [/sl] [/s<addlLevels>] [/vobs/...] [/dev/fs/...] [/x]\n", APP_NAME);
 
 	exit (1);
 }
@@ -452,6 +452,7 @@ int main (int argc, char *argv[])
 	bShowAttrs = bRecurseSubdirs = bIncludeDirs = bExcludeNonSource = bBrief = 0;
 	bForceFileFlush = bShowOnlySubdirs = bDoNotShowSubdirs = 0;
 	bShowACLs = bSkipLabels = bClearCaseViewFile = bInterixPathname = 0;
+	iMaxFilesToPrint = iMaxFiles;
 
 	bIncludeDirs = MFF_RETURN_SUBDIRS;
 	iAddlSubdirLevels = 999;
@@ -531,6 +532,17 @@ int main (int argc, char *argv[])
 				if (dLargeFiles == 0) {
 					char buf[64];
 					sprintf (buf, "incomplete argument '%c%c'", c0, c1);
+					printUsageAndDie (buf);
+				}
+				break;
+
+			case 'm':
+				c2 = *((*argv)+1);
+				if (isdigit (c2)) {
+					iMaxFilesToPrint = atol ((*argv)+1);
+				} else {
+					char buf[64];
+					sprintf (buf, "unrecognized argument '%c%c%c'", c0, c1, c2);
 					printUsageAndDie (buf);
 				}
 				break;
@@ -630,10 +642,11 @@ int main (int argc, char *argv[])
 	}
 
 	//use next parameter, if there is one, as filename to search for
-	if (--argc > 0)
+	if (--argc > 0) {
 		strcpy (szInSpec, *argv);
-	else if (!bClearCaseViewFile && !bInterixPathname)
+	} else if (!bClearCaseViewFile && !bInterixPathname) {
 		strcpy (szInSpec, ALLFILES);
+	}
 
 	//override these values
 	if (bClearCaseViewFile || bInterixPathname) {
@@ -641,21 +654,24 @@ int main (int argc, char *argv[])
 		bIncludeDirs = MFF_RETURN_SUBDIRS;
 	}
 
-	if (bShowACLs)
+	if (bShowACLs) {
 		enableProcessPrivilege (SE_SECURITY_NAME);
+	}
 
 	//convert path to windows format
 	swapSlashes (szInSpec);
 
-	if (debug)
+	if (debug) {
 		printf ("%s\n", szInSpec);
+	}
 
 	p0 = myFileParse (szInSpec, szPathOnly, szFileOnly);
 	if (!p0)
 		return 1; //myFileParse() prints error message
 
-	if (!bBrief)
+	if (!bBrief) {
 		printf (formatDirHeader (szPathOnly));
+	}
 
 	int iNumFiles = 0;
 	double dBytes = 0;
@@ -727,7 +743,7 @@ int main (int argc, char *argv[])
 		}
 
 		//save fileList to be sorted
-		if (sortBy != None) {
+		if (sortBy != None || iMaxFilesToPrint < iMaxFiles) {
 			myAssert (iNumFiles < iMaxFiles);
 			fileList[iNumFiles].lpLine = strdup (line);
 			fileList[iNumFiles].lpFileName = strdup (FILENAMEP (fdFiles));
@@ -747,7 +763,9 @@ int main (int argc, char *argv[])
 	if (sortBy != None) {
 		qsort (fileList, iNumFiles, sizeof (FILESLIST), compare1);
 
-		for (int ii = 0; ii < iNumFiles; ii++) {
+		int max = min (iNumFiles, iMaxFilesToPrint);
+		int first = max < iMaxFiles ? iNumFiles - max : 0;
+		for (int ii = first; ii < iNumFiles; ii++) {
 			printf ("%s", fileList[ii].lpLine);
 		}
 	}
