@@ -6,7 +6,7 @@
 // STL examples at http://www.codeproject.com/vcpp/stl/ostringstream.asp
 
 
-#define VERS_STR "(V6.01)"
+#define VERS_STR "(V6.02)"
 #define APP_NAME "Extr"
 
 #pragma warning (disable:4786)
@@ -97,6 +97,7 @@ string asWildName (const string &file);
 int readFile (const string &filePath, char **buffer);
 int getWindowSize (bool getWidthOrHeight);
 string formatElapsedTime (DWORD millisecs);
+int findSecondSpace(const string &str, TCHAR separator);
 
 typedef struct tagWINDATA {
 	LPSTR winClass;
@@ -370,7 +371,7 @@ int proc01 ()
 
 		out.open (name.c_str (), outMode);
 		if (!out.is_open ()) {
-			cerr << "Error: could not open output file " << name << endl;
+			cerr << "Error: could not open output file (proc01): " << name << endl;
 
 		} else {
 			string str = "longlineoftextlonglineoftextlonglineoftextlonglineoftextlonglineoftext\n";
@@ -434,7 +435,7 @@ int proc02 (const string &wildName)
 
 		out.open (name.c_str (), outMode);
 		if (!out.is_open ())
-			cerr << "Error: could not open output file " << name << endl;
+			cerr << "Error: could not open output file (proc02): " << name << endl;
 		else {
 			outlines = 0;
 			for (int jj = 0; jj < imagesPerAlbum; jj++) {
@@ -779,7 +780,7 @@ int proc04b (const string &format, const string &baseFilename, int iNumPerFile,
 			filename = strm.str ();
 			out.open (filename.c_str (), outMode);
 			if (!out.is_open ()) {
-				cerr << "Error: could not open output file " << filename << endl;
+				cerr << "Error: could not open output file (proc04b): " << filename << endl;
 				return 1;
 			}
 		}
@@ -856,7 +857,7 @@ int proc05 (const string &fileName)
 
 /////////////////////////////////////////////////////////////////////////////
 // test for duplicates via file size
-// NOTE: this is not compatible with filenames that contain spaces!
+// NOTE: this is not compatible with filenames that contain spaces! -> even after some improvements!
 /////////////////////////////////////////////////////////////////////////////
 int proc06 (const string &wildName)
 {
@@ -893,7 +894,7 @@ int proc06 (const string &wildName)
 	cerr << vec1.size () << " files found" << endl;
 
 	DWORD end = GetTickCount ();
-	cerr << "Elapsed time: " << formatElapsedTime (end - start) << endl;
+	cerr << "[elapsed time @1: " << formatElapsedTime (end - start) << "]" << endl << endl;
 	start = GetTickCount ();
 
 	string str, prevStr;
@@ -916,15 +917,16 @@ int proc06 (const string &wildName)
 	cerr << set1.size () << " possible dups found" << endl;
 
 	end = GetTickCount ();
-	cerr << "Elapsed time: " << formatElapsedTime (end - start) << endl;
+	cerr << "[elapsed time @2: " << formatElapsedTime (end - start) << "]" << endl << endl;
 	start = GetTickCount ();
 
-	//make a new list of all dup files, this time injecting cksum
+	//make a new list of all dup files, this time injecting partial cksum
 	StringVector vec2;
 	for (j = set1.begin (); j != set1.end (); ++j) {
 		string currStr = *j;
 
-		lastSpaceAt = currStr.rfind (separator);
+//		lastSpaceAt = currStr.rfind (separator);
+		lastSpaceAt = findSecondSpace (currStr, separator);
 		string currFile = currStr.substr (lastSpaceAt + 1);
 
 		currCksum = getPartialCksum (currFile);
@@ -940,7 +942,7 @@ int proc06 (const string &wildName)
 	cerr << vec2.size () << " files processed" << endl;
 
 	end = GetTickCount ();
-	cerr << "Elapsed time: " << formatElapsedTime (end - start) << endl;
+	cerr << "[elapsed time @3: " << formatElapsedTime (end - start) << "]" << endl << endl;
 	start = GetTickCount ();
 
 	//go through list, collecting all files that have matching size and cksum
@@ -956,18 +958,22 @@ int proc06 (const string &wildName)
 		if (prevBytes == currBytes &&
 			prevCksum == currCksum) {
 
+//			cout << "[debug1] " << currStr << endl; //debug
+
 			//duplicate sizes and checksums found - extract and save both filenames
-			lastSpaceAt = currStr.rfind (separator);
+//			lastSpaceAt = currStr.rfind (separator);
+			lastSpaceAt = findSecondSpace (currStr, separator);
 			string currFile = currStr.substr (lastSpaceAt + 1, MAX_PATH);
 
-			lastSpaceAt = prevStr.rfind (separator);
+//			lastSpaceAt = prevStr.rfind (separator);
+			lastSpaceAt = findSecondSpace (prevStr, separator);
 			string prevFile = prevStr.substr (lastSpaceAt + 1, MAX_PATH);
 
 			//create string for sorting by first file (name only)
 			string triple = fileName (currFile) + separator + currFile + separator + prevFile;
 			vec3.push_back (triple);
 
-//			cout << triple << endl; //debug
+//			cout << "[debug2] " << triple << endl; //debug
 		}
 		prevBytes = currBytes;
 		prevCksum = currCksum;
@@ -981,7 +987,8 @@ int proc06 (const string &wildName)
 		string triple = k->c_str ();
 
 		firstSpaceAt = triple.find (separator);
-		lastSpaceAt = triple.rfind (separator);
+//		lastSpaceAt = triple.rfind (separator);
+		lastSpaceAt = findSecondSpace (triple, separator);
 		string file1 = triple.substr (firstSpaceAt + 1, lastSpaceAt - firstSpaceAt - 1);
 		string file2 = triple.substr (lastSpaceAt + 1, MAX_PATH);
 
@@ -1003,9 +1010,25 @@ int proc06 (const string &wildName)
 		cerr << k->c_str () << endl;
 
 	end = GetTickCount ();
-	cerr << "Elapsed time: " << formatElapsedTime (end - start) << endl;
+	cerr << "[elapsed time @4: " << formatElapsedTime (end - start) << "]" << endl << endl;
 
 	return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+int findSecondSpace(const string &str1, TCHAR separator)
+{
+	int firstSpaceAt = str1.find (separator);
+	string str2 = str1.substr (firstSpaceAt + 1, MAX_PATH);
+	int secondSpaceAt = str2.find (separator);
+
+// Note writing to cout can mess up next command when piping commands together
+//	cout << "[debug0] str1: " << str1 << endl; //debug
+//	cout << "[debug0] str2: " << str2 << endl; //debug
+//	cout << "[debug0] firstSpaceAt: " << firstSpaceAt << " secondSpaceAt: " << secondSpaceAt << " returning: " << (firstSpaceAt + secondSpaceAt + 1) << endl; //debug
+//	cout << endl; //debug
+
+	return firstSpaceAt + secondSpaceAt + 1;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1267,7 +1290,7 @@ static char *format =
 		fstream fout;
 		fout.open (currFile.c_str (), outMode);
 		if (!fout.is_open ()) {
-			cerr << "Error: could not open output file " << currFile << endl;
+			cerr << "Error: could not open output file (proc09): " << currFile << endl;
 			return 0;
 		}
 
@@ -1778,7 +1801,7 @@ int getPartialCksum (string fileUrl)
 
 	in.open (name.c_str (), inMode);
 	if (!in.is_open ()) {
-		cerr << "Error: could not open input file " << name << endl;
+		cerr << "Error: could not open input file (getPartialCksum): " << name << endl;
 		return 0;
 	}
 
@@ -1848,7 +1871,7 @@ int getImageSize (string fileUrl, int *width, int *height, bool test)
 
 	in.open (name.c_str (), inMode);
 	if (!in.is_open ()) {
-		cerr << "Error: could not open input file " << name << endl;
+		cerr << "Error: could not open input file (getImageSize): " << name << endl;
 		return 0;
 	}
 
@@ -2172,7 +2195,7 @@ int readFile (const string &filePath, char **buffer)
 		fstream fin;
 		fin.open (filePath.c_str (), ios::in);
 		if (!fin.is_open ()) {
-			cerr << "Error: could not open input file " << filePath << endl;
+			cerr << "Error: could not open input file (readFile): " << filePath << endl;
 			return 0;
 		}
 
