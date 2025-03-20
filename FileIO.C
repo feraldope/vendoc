@@ -204,25 +204,28 @@ char *myFindFile (const char *lpPathOnly, const char *lpFileOnly, FINDFILEDATA *
 		int iMaxSubdirLevels = _countSlashes (lpPathOnly) + iAddlSubdirLevels;
 
 		p0 = _myFindAllFiles (lpPathOnly, lpFileOnly, fdFiles, iFlags, iMaxSubdirLevels);
-		if (!p0)
+		if (!p0) {
 			return NULL;
+		}
 
 		if ((p1 = strrchr (p0, '\\')) == NULL) { //find trailing slash
 			fprintf (stderr, "myFindFile(): strrchr failed\n");
 			return NULL;
 		}
 
-		if (!(iFlags & MFF_RETURN_SUBDIRS) && ISSUBDIRP (*fdFiles))
+		if (!(iFlags & MFF_RETURN_SUBDIRS) && ISSUBDIRP (*fdFiles)) {
 			continue;
+		}
 
-		if ((iFlags & MFF_EXCLUDE_NONSOURCE) && !isSourceFile (*fdFiles, p0, iFlags))
+		if ((iFlags & MFF_EXCLUDE_NONSOURCE) && !isSourceFile (*fdFiles, p0, iFlags)) {
 			continue;
+		}
 
 		p1++; //step over trailing slash
-		if (strcmp (p1, ".") &&
-			strcmp (p1, "..") &&
-			matchWildcardList (p1, lpFileOnly, /* extendedFileMatching = */ 0))
+		if (strcmp (p1, ".") && strcmp (p1, "..") &&
+				matchWildcardList (p1, lpFileOnly, /* extendedFileMatching = */ 0)) {
 			return p0;
+		}
 	}
 }
 
@@ -290,6 +293,29 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 //		int currSubdirLevel = _countSlashes (cur->spec);
 		int currSubdirLevel = _countSlashes (cur->path);
 
+		//special handling for junctions to get the file last write time
+		if ((ISJUNCTIONP (cur->lpfdFiles))) {
+		    //call CreateFile to get a HANDLE to the file
+			DWORD dwFlagsAndAttributes = FILE_FLAG_BACKUP_SEMANTICS; //necessary for directories?
+			DWORD dwShareMode = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
+			HANDLE handle = CreateFile (_appendPathfile (cur->path, FILENAMEP (cur->lpfdFiles)),
+	    		                        GENERIC_READ, dwShareMode, NULL, OPEN_EXISTING, dwFlagsAndAttributes, NULL);
+			if (handle == INVALID_HANDLE_VALUE) {
+				fprintf (stderr, "_myFindAllFiles() CreateFile failed on (%s) with error %d\n", FILENAMEP (cur->lpfdFiles), GetLastError());
+//TODO?			return 0;
+			}
+
+			//get last write time and copy it into our object
+			BY_HANDLE_FILE_INFORMATION fileInfo;
+			if (GetFileInformationByHandle (handle, &fileInfo)) {
+				FILETIME lastWriteTime = fileInfo.ftLastWriteTime;
+				cur->lpfdFiles->ftLastWriteTime = lastWriteTime;
+			} else {
+				fprintf (stderr, "_myFindAllFiles() GetFileInformationByHandle failed on (%s) with error %d\n", FILENAMEP (cur->lpfdFiles), GetLastError());
+//TODO?			return 0;
+			}
+		}
+
 		//if this is a subdir, but not . or ..
 		//and caller wants subdirs, add it to our tree
 		if ((ISSUBDIRP (cur->lpfdFiles)) &&
@@ -333,7 +359,7 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 				fprintf (stderr, "_myFindAllFiles() before free %d: 0x%08lX (%s)\n",
 						++free_count, tmp, tmp->path);
 			}
-//BUG - why does this free cause a crash???
+//BUG - memory leak? - why does this free cause a crash???
 //			free (tmp);
 			tmp = NULL;
 
@@ -1511,12 +1537,12 @@ const char *quoteFile (const char* filename)
 
 ////////////////////////////////////////////////////////////////////////////
 /*
-             <<< TURRIS::TURRIS$DUA18:[NOTES$LIBRARY]VAXC.NOTE;2 >>>
-                                -< VAX C Notes >-
+<<< TURRIS::TURRIS$DUA18:[NOTES$LIBRARY]VAXC.NOTE;2 >>>
+-< VAX C Notes >-
 ================================================================================
-Note 2360.11    what's a portable replacement for STR$MATCH_WILD        11 of 13
+Note 2360.11 - what's a portable replacement for STR$MATCH_WILD - 11 of 13
 BOLT::MINOW "Pere Ubu is coming soon, are you ready" 69 lines  27-SEP-1989 14:24
-                         -< Here's the match routine >-
+-< Here's the match routine >-
 --------------------------------------------------------------------------------
 Here is a routine that does RT11-style wildcard ('*' matches anything, '?'
 matches a single character).  I can provide you with regular expression

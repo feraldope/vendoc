@@ -1,7 +1,7 @@
 //Dsin does a 'dir /since /modified' of the current directory
 
 #define APP_NAME "Dsin"
-#define VERS_STR " (V7.05)"
+#define VERS_STR " (V8.01)"
 
 #include <windows.h>
 #include <stdio.h>
@@ -251,20 +251,23 @@ int main (int argc, char *argv[])
 	}
 
 	//use next parameter, if there is one, as filename to search for
-	if (--argc > 0)
+	if (--argc > 0) {
 		strcpy (szInSpec, *argv);
-	else
+	} else {
 		strcpy (szInSpec, ALLFILES);
+	}
 
 	//convert path to windows format
 	swapSlashes (szInSpec);
 
-	if (debug)
+	if (debug) {
 		printf ("%s\n", szInSpec);
+	}
 
 	p0 = myFileParse (szInSpec, szPathOnly, szFileOnly);
-	if (!p0)
+	if (!p0) {
 		return 1; //myFileParse() prints error message
+	}
 
 	//next param, if there is one, is number of days to go back (default to 0)
 	double dNumDays = (--argc > 0 ? atof (*++argv) : 0);
@@ -292,11 +295,13 @@ int main (int argc, char *argv[])
 	int ffFlags = bIncludeDirs | bRecurseSubdirs | bExcludeNonSource;
 	while ((p0 = myFindFile (szPathOnly, szFileOnly, &fdFiles, ffFlags, iAddlSubdirLevels)) != NULL) {
 		//skip files in the exclude file list, if requested
-		if (pExcludeFileList && matchWildcardList (p0, pExcludeFileList))
+		if (pExcludeFileList && matchWildcardList (p0, pExcludeFileList)) {
 			continue;
+		}
 
-		if ((bShowOnlySubdirs && !ISSUBDIRP (fdFiles)) || (bDoNotShowSubdirs && ISSUBDIRP (fdFiles)))
+		if ((bShowOnlySubdirs && !ISSUBDIRP (fdFiles)) || (bDoNotShowSubdirs && ISSUBDIRP (fdFiles))) {
 			continue;
+		}
 
 		//try to force OS to flush file so we get accurate size/date info
 		if (bForceFileFlush && !ISSUBDIRP (fdFiles)) {
@@ -304,8 +309,9 @@ int main (int argc, char *argv[])
 		}
 
 		//only print if size is larger than specified, or test is disabled
-		if (dLargeFiles != 0 && getFileSize (fdFiles) < dLargeFiles)
+		if (dLargeFiles != 0 && getFileSize (fdFiles) < dLargeFiles) {
 			continue;
+		}
 
 		FILETIME ftLocalTime;
 		if (sortBy == Date) {
@@ -316,8 +322,9 @@ int main (int argc, char *argv[])
 
 		//skip files that are older than cutoff time
 		time_t t_file = windowsTickToUnixSeconds (fileTimeToUint64 (fdFiles->ftLastWriteTime));
-		if (t_file < t_cutoff)
+		if (t_file < t_cutoff) {
 			continue;
+		}
 
 		if (bBrief) {
 			strcpy (line, p0);

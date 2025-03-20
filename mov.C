@@ -11,7 +11,7 @@
 // also, optionally converts spaces or underscores in names to dashes
 
 #define APP_NAME "mov"
-#define VERS_STR "(V6.05)"
+#define VERS_STR "(V7.01)"
 
 #include <windows.h>
 #if defined (_MSC_VER)
@@ -25,6 +25,7 @@
 #include <set>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 #include "fileio.h"
 
 using namespace std;
@@ -80,6 +81,29 @@ struct lessNoCase : binary_function<string, string, bool>
 		return lexicographical_compare (s1.begin (), s1.end (), s2.begin (), s2.end (), compareNoCase ());
 	}
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// original from https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+std::string exec(const char* cmd) {
+	char buffer[1024];
+	std::string result = "";
+	FILE* pipe = _popen(cmd, "r");
+	if (!pipe) {
+		throw std::runtime_error("popen() failed!");
+	}
+
+	try {
+		while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+			result += buffer;
+		}
+	} catch (...) {
+		_pclose(pipe);
+		throw;
+	}
+	_pclose(pipe);
+
+	return result;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 bool fileExistsWild (string inSpec)
@@ -798,8 +822,9 @@ int main (int argc, char *argv[])
 //TODO - handle malformed arg like /renum1=
 		if (strlen (argv[1]) > 5 && argv[1][7] == '=') {
 			int num = atoi (&argv[1][8]);
-			if (num >= 1)
+			if (num >= 1) {
 				renumWidth = num;
+			}
 		}
 
 		--argc;
@@ -811,8 +836,9 @@ int main (int argc, char *argv[])
 //TODO - handle malformed arg like /renum2=
 		if (strlen (argv[1]) > 5 && argv[1][7] == '=') {
 			int num = atoi (&argv[1][8]);
-			if (num >= 1)
+			if (num >= 1) {
 				renumWidth = num;
+			}
 		}
 
 		--argc;
@@ -824,8 +850,9 @@ int main (int argc, char *argv[])
 //TODO - handle malformed arg like /pad=
 		if (strlen (argv[1]) > 5 && argv[1][4] == '=') {
 			int num = atoi (&argv[1][5]);
-			if (num >= 1)
+			if (num >= 1) {
 				padWidth = num;
+			}
 		}
 
 		--argc;
@@ -837,8 +864,9 @@ int main (int argc, char *argv[])
 //TODO - handle malformed arg like /start=
 		if (strlen (argv[1]) > 7 && argv[1][6] == '=') {
 			int num = atoi (&argv[1][7]);
-			if (num >= 1)
+			if (num >= 1) {
 				startIndex = num;
+			}
 		}
 
 		--argc;
@@ -852,8 +880,9 @@ int main (int argc, char *argv[])
 		increment = -1;
 
 //TODO - this works because startIndex was already set because the current processing requires the args to be in a specific order
-		if (startIndex = 1)
+		if (startIndex = 1) {
 			startIndex = 999;
+		}
 	}
 
 	if (argc > 1 && !strcmp (argv[1], "/sp")) {
@@ -956,8 +985,9 @@ int main (int argc, char *argv[])
 	} else {
 		printf ("Move commands (%d):\n", numCommands);
 
-		for (int ii = 0; ii < numCommands; ii++)
+		for (int ii = 0; ii < numCommands; ii++) {
 			printf ("%s\n", szCommands[ii]);
+		}
 
 		if (numConflicts != 0 && !forceOverwrite) {
 			char msg1[] = "Error: there is %d conflict\n";
@@ -976,7 +1006,8 @@ int main (int argc, char *argv[])
 
 			if (doMoves) {
 				for (int ii = 0; ii < numCommands; ii++)
-					system (szCommands[ii]);
+//					system (szCommands[ii]);
+					exec (szCommands[ii]);
 //TODO - error checking here?
 
 				writeUndoCommands (szUndoCmds, numCommands, directory);

@@ -39,6 +39,24 @@
 #define ISARCHIVEP(file)	((file)->dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
 //#endif //OS
 
+//originally added to support junctions (MS doc claims this should be in winbase.h)
+typedef struct _FILE_STANDARD_INFO {
+  LARGE_INTEGER AllocationSize;
+  LARGE_INTEGER EndOfFile;
+  DWORD         NumberOfLinks;
+  BOOLEAN       DeletePending;
+  BOOLEAN       Directory;
+} FILE_STANDARD_INFO, *PFILE_STANDARD_INFO;
+
+//originally added to support junctions (MS doc claims this should be in winbase.h)
+typedef struct _FILE_STANDARD_INFORMATION {
+  LARGE_INTEGER AllocationSize;
+  LARGE_INTEGER EndOfFile;
+  ULONG         NumberOfLinks;
+  BOOLEAN       DeletePending;
+  BOOLEAN       Directory;
+} FILE_STANDARD_INFORMATION, *PFILE_STANDARD_INFORMATION;
+
 #define Bool BOOL
 #define True TRUE
 #define False FALSE
@@ -159,4 +177,3 @@ _CRTIMP void __cdecl _assert(const void *, const void *, unsigned);
 #endif
 
 #endif //_FILEIO_H_
-
