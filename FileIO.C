@@ -260,8 +260,9 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 	struct dirnode *tail1 = tail;
 #endif
 
-	if (FileIoDebug)
+	if (FileIoDebug) {
 		fprintf (stderr, "_myFindAllFiles() path=\"%s\", file=\"%s\"\n", path, file);
+	}
 
 	//on the first pass, allocate the root struct and recursively call ourselves
 	if (cur == NULL) {
@@ -294,14 +295,16 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 		int currSubdirLevel = _countSlashes (cur->path);
 
 		//special handling for junctions to get the file last write time
-		if ((ISJUNCTIONP (cur->lpfdFiles))) {
-		    //call CreateFile to get a HANDLE to the file
+		if ((ISJUNCTIONP (cur->lpfdFiles)) && 
+				strcmp (cur->path, "C:\\Users\\david\\AppData\\Local\\Microsoft\\WindowsApps") != 0) { //skip this folder owned by "TrustedInstaller"
+			//call CreateFile to get a HANDLE to the file
 			DWORD dwFlagsAndAttributes = FILE_FLAG_BACKUP_SEMANTICS; //necessary for directories?
 			DWORD dwShareMode = FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE;
-			HANDLE handle = CreateFile (_appendPathfile (cur->path, FILENAMEP (cur->lpfdFiles)),
-	    		                        GENERIC_READ, dwShareMode, NULL, OPEN_EXISTING, dwFlagsAndAttributes, NULL);
+			char szFileSpec[MY_MAX_PATH] = "";
+			strcpy(szFileSpec, _appendPathfile (cur->path, FILENAMEP (cur->lpfdFiles)));
+			HANDLE handle = CreateFile (szFileSpec, GENERIC_READ, dwShareMode, NULL, OPEN_EXISTING, dwFlagsAndAttributes, NULL);
 			if (handle == INVALID_HANDLE_VALUE) {
-				fprintf (stderr, "_myFindAllFiles() CreateFile failed on (%s) with error %d\n", FILENAMEP (cur->lpfdFiles), GetLastError());
+				fprintf (stderr, "_myFindAllFiles() CreateFile failed on (%s) with error %d\n", szFileSpec, GetLastError());
 //TODO?			return 0;
 			}
 
@@ -311,7 +314,7 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 				FILETIME lastWriteTime = fileInfo.ftLastWriteTime;
 				cur->lpfdFiles->ftLastWriteTime = lastWriteTime;
 			} else {
-				fprintf (stderr, "_myFindAllFiles() GetFileInformationByHandle failed on (%s) with error %d\n", FILENAMEP (cur->lpfdFiles), GetLastError());
+				fprintf (stderr, "_myFindAllFiles() GetFileInformationByHandle failed on (%s) with error %d\n", szFileSpec, GetLastError());
 //TODO?			return 0;
 			}
 		}
@@ -319,10 +322,10 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 		//if this is a subdir, but not . or ..
 		//and caller wants subdirs, add it to our tree
 		if ((ISSUBDIRP (cur->lpfdFiles)) &&
-			strcmp (FILENAMEP (cur->lpfdFiles), ".") != 0 &&
-			strcmp (FILENAMEP (cur->lpfdFiles), "..") != 0 &&
-			(iFlags & MFF_RECURSE_SUBDIRS) &&
-			currSubdirLevel < iMaxSubdirLevels) {
+				strcmp (FILENAMEP (cur->lpfdFiles), ".") != 0 &&
+				strcmp (FILENAMEP (cur->lpfdFiles), "..") != 0 &&
+				(iFlags & MFF_RECURSE_SUBDIRS) &&
+				currSubdirLevel < iMaxSubdirLevels) {
 
 			if ((tail->next = (struct dirnode *)malloc (SIZENEEDED)) == NULL) {
 				perror ("Error: _myFindAllFiles() @ malloc 1");
