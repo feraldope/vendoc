@@ -306,16 +306,21 @@ char *_myFindAllFiles (const char *path, const char *file, FINDFILEDATA **fdUser
 			if (handle == INVALID_HANDLE_VALUE) {
 				fprintf (stderr, "_myFindAllFiles() CreateFile failed on (%s) with error %d\n", szFileSpec, GetLastError());
 //TODO?			return 0;
-			}
-
-			//get last write time and copy it into our object
-			BY_HANDLE_FILE_INFORMATION fileInfo;
-			if (GetFileInformationByHandle (handle, &fileInfo)) {
-				FILETIME lastWriteTime = fileInfo.ftLastWriteTime;
-				cur->lpfdFiles->ftLastWriteTime = lastWriteTime;
 			} else {
-				fprintf (stderr, "_myFindAllFiles() GetFileInformationByHandle failed on (%s) with error %d\n", szFileSpec, GetLastError());
-//TODO?			return 0;
+				//get last write time and copy it into our object
+				BY_HANDLE_FILE_INFORMATION fileInfo;
+				if (GetFileInformationByHandle (handle, &fileInfo)) {
+					FILETIME lastWriteTime = fileInfo.ftLastWriteTime;
+					cur->lpfdFiles->ftLastWriteTime = lastWriteTime;
+				} else {
+					fprintf (stderr, "_myFindAllFiles() GetFileInformationByHandle failed on (%s) with error %d\n", szFileSpec, GetLastError());
+//TODO?				return 0;
+				}
+				
+				if (!CloseHandle (handle)) {
+					fprintf (stderr, "_myFindAllFiles() CloseHandle failed on (%s) with error %d\n", szFileSpec, GetLastError());
+//TODO?				return 0;
+				}
 			}
 		}
 
